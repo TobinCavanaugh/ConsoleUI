@@ -10,11 +10,9 @@ public class UIElement
     public Vec2 upperLeft = new Vec2(0, 0);
     public Vec2 bottomRight = new Vec2(100, 100);
 
-    public ConsoleColor color = ConsoleColor.White;
-    public char drawingCharacter = '\u2588';
 
-    private Vec2 oldUpperLeft;
-    private Vec2 oldBottomRight;
+    // public char drawingCharacter = '\u2588';
+    public char drawingCharacter = '0';
 
     public void Render()
     {
@@ -24,31 +22,15 @@ public class UIElement
         int yMin = (int) ((upperLeft.y / 100f) * dim.y);
         int yMax = (int) ((bottomRight.y / 100f) * dim.y);
 
-        if (!upperLeft.Equals(oldUpperLeft) || !bottomRight.Equals(oldBottomRight))
+        ConsoleBuffer.FillRegion((xMin, yMin), (xMax, yMax), new ConsoleCharacter()
         {
-            ConsoleBuffer.FillRegion(
-                (
-                    ((int) (oldUpperLeft.x / 100f) * dim.x, (int) (oldUpperLeft.y / 100f) * dim.y)),
-                ((int) (oldBottomRight.x / 100f) * dim.x, (int) (oldBottomRight.y / 100f) * dim.y), new ConsoleCharacter()
-                {
-                    chr = '0',
-                    color = ConsoleColor.Red,
-                    dirty = true
-                });
-        }
+            chr = drawingCharacter,
+            bgColor = ConsoleColor.Gray.ToRGB(),
+            foreColor = ConsoleColor.Gray.ToRGB(),
+        });
 
-
-        var cursorPos = ConsoleInterface.GetCursorPos();
-
-        string bar = "".PadLeft((xMax - xMin), drawingCharacter);
-        for (int y = yMin; y < yMax; y++)
-        {
-            ConsoleBuffer.WriteAt(bar, (xMin, y), this.color);
-        }
-
-        ConsoleInterface.SetCursorPos(cursorPos);
-
-        oldUpperLeft = upperLeft;
-        oldBottomRight = bottomRight;
+        ConsoleBuffer.WriteAt("Fancy Text", ((xMin + xMax) / 2, (yMin + yMax) / 2), ConsoleColor.Red.ToRGB(),
+            (-1, -1, -1));
+        // ConsoleBuffer.WriteAt("\u2500", (xMin, xMax), ConsoleColor.Red, ConsoleColor.Black);
     }
 }

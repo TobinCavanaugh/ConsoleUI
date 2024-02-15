@@ -1,42 +1,13 @@
-﻿using System.ComponentModel.Design;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using ConsoleUI;
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        ConsoleInterface.Init();
         WindowsInterface.Init();
+        ConsoleInterface.Init();
         ConsoleBuffer.RebuildBuffer();
-
-
-        int it = 0;
-        var dim = ConsoleInterface.GetConsoleDimensions();
-        
-        string combined = "";
-        while (true)
-        {
-            Random r = new Random();
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-            for (int i = 0; i < 10000; i++)
-            {
-                stopwatch.Stop();
-                int off = 10;
-                var s = it.ToString()[^1].ToString();
-                var vec = (r.Next(dim.x - off) + off, r.Next(dim.y));
-                stopwatch.Start();
-                ConsoleInterface.WriteColoredAt(s, ConsoleColor.Blue, vec);
-            }
-            stopwatch.Stop();
-            combined += $"|{stopwatch.ElapsedMilliseconds}ms";
-            // ConsoleInterface.WriteColoredAt(stopwatch.ElapsedMilliseconds + "ms", ConsoleColor.White, (0, it));
-            it++;
-            
-            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "/speed.txt", combined);
-        }
-
 
         UIElement element = new()
         {
@@ -47,7 +18,6 @@ public class Program
         {
             upperLeft = (0, 0),
             bottomRight = (10, 10),
-            color = ConsoleColor.Red
         };
 
 
@@ -55,8 +25,8 @@ public class Program
 
         while (true)
         {
-            ConsoleInterface.CheckBufferSize();
             frameTime.Start();
+            ConsoleInterface.CheckBufferSize();
 
             ConsoleKeyInfo raw = default;
             if (Console.KeyAvailable)
@@ -111,35 +81,35 @@ public class Program
             {
                 var stream = Console.OpenStandardOutput();
 
-                var sw = new StreamReader(stream);
+                var stw = new StreamReader(stream);
 
-                File.WriteAllText($"{Directory.GetCurrentDirectory()}\\file.txt", sw.ReadToEnd());
+                File.WriteAllText($"{Directory.GetCurrentDirectory()}\\file.txt", stw.ReadToEnd());
             }
 
-            // ConsoleInterface.Clear();
+            ConsoleBuffer.FillRegion((0, 0), ConsoleInterface.GetConsoleDimensions(), new ConsoleCharacter()
+            {
+                chr = ' ',
+                bgColor = ConsoleInterface.clearColor.ToRGB(),
+                foreColor = ConsoleInterface.clearColor.ToRGB(),
+            });
 
             element.Render();
             other.Render();
+            element.Render();
 
-            ConsoleBuffer.WriteAt(frameTime.ElapsedMilliseconds + "ms",
-                (0, ConsoleInterface.GetConsoleDimensions().y - 2), ConsoleColor.Cyan);
-            // ConsoleInterface.WriteColoredAt(stopwatch.ElapsedMilliseconds + "ms", ConsoleColor.Blue, (0, 100));
-            // ConsoleInterface.WriteColoredAt(ConsoleInterface.GetMousePos().ToString(), ConsoleColor.Cyan, (20, 100));
-            // ConsoleInterface.WriteColoredAt(WindowsInterface.GetWindowRect_().ToString(), ConsoleColor.Cyan, (50, 100));
+            ConsoleBuffer.WriteAt("Cool text", (0, 0), ConsoleColor.Green);
 
-
-            ConsoleBuffer.FillRegion((0, 0), ConsoleInterface.GetConsoleDimensions(),
-                new ConsoleCharacter() {chr = '0', color = ConsoleColor.Red, dirty = true});
-
-
+            ConsoleBuffer.WriteAt(WindowsInterface.GetWindowRect_().ToString(), (0, 0));
+            ConsoleBuffer.WriteAt(ConsoleInterface.GetMousePos().ToString(), (0, 1));
             ConsoleBuffer.RenderScreenBuffer();
-            // ConsoleBuffer.Clear();
 
-            // Console.Write(raw.KeyChar);
-            frameTime.Stop();
-            // Thread.Sleep((int) Math.Max(16 - stopwatch.ElapsedMilliseconds, 0));
+            ConsoleBuffer.WriteAt(frameTime.ElapsedMilliseconds + "ms", (0, 2));
 
-            frameTime.Reset();
+            frameTime.Restart();
+            ConsoleBuffer.RenderScreenBuffer();
+            
+
+            // Thread.Sleep(100);
         }
     }
 }

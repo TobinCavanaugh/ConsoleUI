@@ -12,15 +12,22 @@ public static class WindowsInterface
     public static extern bool GetCursorPos(ref Point lpPoint);
     //End
 
-    // Import necessary WinAPI functions
     [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool AttachConsole(uint dwProcessId);
+
+    [DllImport("kernel32.dll")]
     static extern IntPtr GetConsoleWindow();
+
+    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+    static extern bool FreeConsole();
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool GetWindowRect(IntPtr hWnd, out Rect lpRect);
+    static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
 
-    public struct Rect
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
     {
         public int Left { get; set; }
         public int Top { get; set; }
@@ -35,26 +42,62 @@ public static class WindowsInterface
 
     private static IntPtr procPtr;
 
+    public static RECT GetWindowRect_()
+    {
+        var rr = new RECT();
+        GetWindowRect(GetConsoleWindow(), ref rr);
+        return rr;
+    }
 
     public static void Init()
     {
-       // procPtr = GetConsoleWindow();
-       // var wind = Process.GetCurrentProcess().MainWindowHandle;
+        // procPtr = GetConsoleWindow();
+        // var wind = Process.GetCurrentProcess().MainWindowHandle;
 
-       procPtr = GetConsoleWindow();
+        procPtr = GetConsoleWindow();
 
-       if (procPtr == IntPtr.Zero)
-       {
-           Environment.Exit(0);
-           throw new Exception();
-       }
+        if (procPtr == IntPtr.Zero)
+        {
+            Environment.Exit(0);
+            throw new Exception();
+        }
+
+        InitConsoleColors();
     }
 
-    static Rect r = new Rect();
-
-    public static Rect GetWindowRect_()
+    private static void InitConsoleColors()
     {
-        GetWindowRect(procPtr, out r);
-        return r;
+        // Get the handle to the standard output stream
+        var handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+        // Get the current console mode
+        uint mode;
+        if (!GetConsoleMode(handle, out mode))
+        {
+            Console.Error.WriteLine("Failed to get console mode");
+            return;
+        }
+
+        // Enable the virtual terminal processing mode
+        mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        if (!SetConsoleMode(handle, mode))
+        {
+            Console.Error.WriteLine("Failed to set console mode");
+            return;
+        }
     }
+
+
+    // P/Invoke declarations
+    private const int STD_OUTPUT_HANDLE = -11;
+    private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr GetStdHandle(int nStdHandle);
+
+    [DllImport("kernel32.dll")]
+    private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+    [DllImport("kernel32.dll")]
+    private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 }

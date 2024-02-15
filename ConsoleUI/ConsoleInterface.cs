@@ -1,6 +1,4 @@
 ﻿using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace ConsoleUI;
 
@@ -77,25 +75,6 @@ public static class ConsoleInterface
     }
 
 
-    public static void WriteColored(string text, ConsoleColor color)
-    {
-        Console.ForegroundColor = color;
-        Console.Write(text);
-    }
-
-    public static void WriteColoredAt(string text, ConsoleColor color, Vec2 pos)
-    {
-        var oldPos = GetCursorPos();
-        SetCursorPos(pos);
-        WriteColored(text, color);
-        SetCursorPos(oldPos);
-
-        // Console.ForegroundColor = color;
-        // var dim = GetConsoleDimensions();
-        // stream.Position = (dim.x * pos.y) + dim.x;
-        // stream.Write(Encoding.UTF8.GetBytes(text));
-    }
-
     public static void Clear()
     {
         var pos = GetCursorPos();
@@ -122,9 +101,9 @@ public static class ConsoleInterface
     {
         SetCursorPos(GetCursorPos());
 
-        // var dim = GetConsoleDimensions();
+        var oldDim = GetConsoleDimensions();
         var dim = GetConsoleDimensionsNew();
-        if (!BufferDimensions.Equals(dim))
+        if (!oldDim.Equals(dim))
         {
             ConsoleBuffer.RebuildBuffer();
             BufferDimensions = dim;
