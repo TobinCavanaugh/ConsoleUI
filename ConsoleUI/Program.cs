@@ -103,11 +103,13 @@ public class Program
             ConsoleBuffer.WriteAt(ConsoleInterface.GetMousePos().ToString(), (0, 1));
             ConsoleBuffer.RenderScreenBuffer();
 
-            ConsoleBuffer.WriteAt(frameTime.ElapsedMilliseconds + "ms", (0, 2));
+            ConsoleInterface.SetCursorPos(0, 0);
+            Console.WriteLine(frameTime.ElapsedMilliseconds + "ms");
+            // ConsoleBuffer.WriteAt(frameTime.ElapsedMilliseconds + "ms", (0, 2));
 
             frameTime.Restart();
-            ConsoleBuffer.RenderScreenBuffer();
-            
+            // ConsoleBuffer.RenderScreenBuffer();
+
 
             // Thread.Sleep(100);
         }

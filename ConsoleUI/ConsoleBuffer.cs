@@ -136,18 +136,36 @@ public static class ConsoleBuffer
 
         var rgbBuffer = ConsoleColorConverter.GetColorCharBuffer();
 
+        char[] foreLineBuffer = new char[xLength * rgbBuffer.Length];
+        char[] bgLineBuffer = new char[xLength * rgbBuffer.Length];
+
         for (int y = 0; y < yLength; y++)
         {
             for (int x = 0; x < xLength; x++)
             {
                 var current = screenBuffer[y, x];
-
-                ConsoleColorConverter.SetRGBBuffer(current.bgColor, '\0', ref rgbBuffer, 48);
-                Console.Write(rgbBuffer);
-
-                ConsoleColorConverter.SetRGBBuffer(current.foreColor, current.chr, ref rgbBuffer, 38);
-                Console.Write(rgbBuffer);
+                
+                ConsoleColorConverter.SetRGBBuffer(current.bgColor, current.chr, ref bgLineBuffer, 48,
+                    x * rgbBuffer.Length);
+                
+                ConsoleColorConverter.SetRGBBuffer(current.foreColor, current.chr, ref bgLineBuffer, 38,
+                    x * rgbBuffer.Length);
             }
+
+            Console.Write(bgLineBuffer);
+            Console.Write(foreLineBuffer);
+            ConsoleInterface.SetCursorPos(0, y);
+
+            // for (int x = 0; x < xLength; x++)
+            // {
+            //     var current = screenBuffer[y, x];
+            //
+            //     ConsoleColorConverter.SetRGBBuffer(current.bgColor, '\0', ref rgbBuffer, 48);
+            //     Console.Write(rgbBuffer);
+            //
+            //     ConsoleColorConverter.SetRGBBuffer(current.foreColor, current.chr, ref rgbBuffer, 38);
+            //     Console.Write(rgbBuffer);
+            // }
         }
 
         // sw.Stop();

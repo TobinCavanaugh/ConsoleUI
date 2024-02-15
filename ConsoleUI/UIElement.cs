@@ -11,8 +11,8 @@ public class UIElement
     public Vec2 bottomRight = new Vec2(100, 100);
 
 
-    // public char drawingCharacter = '\u2588';
-    public char drawingCharacter = '0';
+    public char drawingCharacter = '\u2588';
+    // public char drawingCharacter = '0';
 
     public void Render()
     {
