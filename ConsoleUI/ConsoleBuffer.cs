@@ -153,7 +153,7 @@ public static class ConsoleBuffer
                 }
             }
 
-            var currentHash = QuickHash.GetHash(new string(rgbBuffer));
+            var currentHash = QuickHash.GetHash(rgbBuffer);
 
             if (currentHash != previousHashes[y])
             {
