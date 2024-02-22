@@ -43,7 +43,6 @@ public static class ConsoleColorConverter
         {ConsoleColor.White, (0xFF, 0xFF, 0xFF)}
     };
 
-
     static Dictionary<int, string> intLookupStringTable = new()
     {
         {000, "000"}, {001, "001"}, {002, "002"}, {003, "003"}, {004, "004"}, {005, "005"}, {006, "006"},
@@ -93,51 +92,110 @@ public static class ConsoleColorConverter
     public static string Colorize(this char ogChar, int r, int g, int b)
     {
         //\x1b[0m
-        return $"\x1b[38;2;{r:000};{g:000};{b:000}m{ogChar}";
+        return $"\x1b[38;2;{r:000};{g:000};{b:000}m{ogChar}\033[0m";
     }
 
-    public static char[] GetColorCharBuffer()
+    public static char[] GetEmptyColorCharBuffer(int charCount)
     {
-        var len = Colorize(' ', 000, 000, 000);
-        return len.ToCharArray();
+        return new char[GetColorBufferLength(charCount)];
     }
 
-    public static void SetRGBBuffer((int r, int g, int b) color, char chr, ref char[] rgbBuffer, int layer, int offset)
+    public static int GetColorBufferLength(int charCount = 1)
     {
-        string r = intLookupStringTable[color.r];
-        string g = intLookupStringTable[color.g];
-        string b = intLookupStringTable[color.b];
-        string l = intLookupStringTable[layer];
+        return 43 * charCount;
+    }
 
-        var off = offset;
+    public static void SetRGBBuffer(
+        ConColor foreColor,
+        ConColor bgColor,
+        char chr,
+        ref char[] rgbBuffer,
+        int offset)
+    {
+        int backLayer = 48;
+        int foreLayer = 38;
 
-        rgbBuffer[0 + off] = '\x1b'; //Start char
-        rgbBuffer[1 + off] = '['; //[
-        rgbBuffer[2 + off] = l[0]; //Layer [0]
-        rgbBuffer[3 + off] = l[1]; //Layer [1]
+        string fr = intLookupStringTable[Int32.Abs(foreColor.r)];
+        string fg = intLookupStringTable[Int32.Abs(foreColor.g)];
+        string fb = intLookupStringTable[Int32.Abs(foreColor.b)];
 
-        rgbBuffer[4 + off] = ';';
-        rgbBuffer[5 + off] = '2';
-        rgbBuffer[6 + off] = ';';
+        string br = intLookupStringTable[Int32.Abs(bgColor.r)];
+        string bg = intLookupStringTable[Int32.Abs(bgColor.g)];
+        string bb = intLookupStringTable[Int32.Abs(bgColor.b)];
 
-        rgbBuffer[7 + off] = r[0];
-        rgbBuffer[8 + off] = r[1];
-        rgbBuffer[9 + off] = r[2];
+        string bl = intLookupStringTable[Int32.Abs(backLayer)];
+        string fl = intLookupStringTable[Int32.Abs(foreLayer)];
 
-        rgbBuffer[10 + off] = ';';
+        int index = offset;
 
-        rgbBuffer[11 + off] = g[0];
-        rgbBuffer[12 + off] = g[1];
-        rgbBuffer[13 + off] = g[2];
+        rgbBuffer[index++] = '\x1b'; //Start char
+        rgbBuffer[index++] = '['; //[
+        rgbBuffer[index++] = fl[1]; //Layer [1]
+        rgbBuffer[index++] = fl[2]; //Layer [2]
 
-        rgbBuffer[14] = ';';
+        rgbBuffer[index++] = ';';
+        rgbBuffer[index++] = '2';
+        rgbBuffer[index++] = ';';
 
-        rgbBuffer[15 + off] = b[0];
-        rgbBuffer[16 + off] = b[1];
-        rgbBuffer[17 + off] = b[2];
+        //RED
+        rgbBuffer[index++] = fr[0];
+        rgbBuffer[index++] = fr[1];
+        rgbBuffer[index++] = fr[2];
 
-        rgbBuffer[18 + off] = 'm';
+        rgbBuffer[index++] = ';';
 
-        rgbBuffer[19 + off] = chr;
+        //GREEN
+        rgbBuffer[index++] = fg[0];
+        rgbBuffer[index++] = fg[1];
+        rgbBuffer[index++] = fg[2];
+
+        rgbBuffer[index++] = ';';
+
+        //BLUE
+        rgbBuffer[index++] = fb[0];
+        rgbBuffer[index++] = fb[1];
+        rgbBuffer[index++] = fb[2];
+
+        rgbBuffer[index++] = 'm';
+
+        //BACK GROUND
+
+        rgbBuffer[index++] = '\x1b';
+
+        rgbBuffer[index++] = '[';
+        rgbBuffer[index++] = bl[1];
+        rgbBuffer[index++] = bl[2];
+
+        rgbBuffer[index++] = ';';
+        rgbBuffer[index++] = '2';
+        rgbBuffer[index++] = ';';
+
+        //RED
+        rgbBuffer[index++] = br[0];
+        rgbBuffer[index++] = br[1];
+        rgbBuffer[index++] = br[2];
+
+        rgbBuffer[index++] = ';';
+
+        //GREEN
+        rgbBuffer[index++] = bg[0];
+        rgbBuffer[index++] = bg[1];
+        rgbBuffer[index++] = bg[2];
+
+        rgbBuffer[index++] = ';';
+
+        //BLUE
+        rgbBuffer[index++] = bb[0];
+        rgbBuffer[index++] = bb[1];
+        rgbBuffer[index++] = bb[2];
+
+        rgbBuffer[index++] = 'm';
+
+        rgbBuffer[index++] = chr;
+
+        rgbBuffer[index++] = '\x1b';
+        rgbBuffer[index++] = '[';
+        rgbBuffer[index++] = '0';
+        rgbBuffer[index++] = 'm';
     }
 }

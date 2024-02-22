@@ -13,7 +13,8 @@ public static class ConsoleInterface
 
     private static Vec2 GetConsoleDimensionsNew()
     {
-        var dim = (Console.BufferWidth, Console.BufferHeight);
+        var dim = (Console.BufferWidth, Console.BufferHeight + 1);
+        // var dim = (Console.LargestWindowWidth, Console.LargestWindowHeight);
         BufferDimensions = dim;
         return dim;
     }
@@ -109,4 +110,6 @@ public static class ConsoleInterface
             BufferDimensions = dim;
         }
     }
+    
+    // public static void DrawLine(Vec2 ul, Vec2 br, ())
 }

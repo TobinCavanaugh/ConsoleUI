@@ -6,8 +6,8 @@ public struct ConsoleCharacter
     // public ConsoleColor color = ConsoleColor.Black;
     // public ConsoleColor bgColor = ConsoleColor.Black;
 
-    public (int r, int g, int b) foreColor;
-    public (int r, int g, int b) bgColor;
+    public ConColor foreColor;
+    public ConColor bgColor;
 
     public ConsoleCharacter()
     {
@@ -24,5 +24,10 @@ public struct ConsoleCharacter
     {
         foreColor = _fore;
         bgColor = _bg;
+    }
+
+    public override string ToString()
+    {
+        return $"C:{chr} F:({foreColor.r},{foreColor.g},{foreColor.b}) B:({bgColor.r},{bgColor.g},{bgColor.b})";
     }
 }

@@ -24,21 +24,6 @@ public static class ConsoleBuffer
         yLength = dim.y;
     }
 
-    public static void Clear()
-    {
-        for (var i = 0; i < yLength; i++)
-        {
-            for (var i1 = 0; i1 < xLength; i1++)
-            {
-                screenBuffer[i, i1].chr = ' ';
-                var cleared = ConsoleInterface.clearColor.ToRGB();
-                screenBuffer[i, i1].bgColor = cleared;
-                screenBuffer[i, i1].foreColor = cleared;
-            }
-        }
-    }
-
-
     public static void FillRegion(Vec2 upperLeft, Vec2 bottomRight, ConsoleCharacter sample)
     {
         var dim = ConsoleInterface.GetConsoleDimensions();
@@ -67,18 +52,18 @@ public static class ConsoleBuffer
             return;
         }
 
-        var bgc = sample.bgColor;
-        if (bgc.r < 0 && bgc.g < 0 && bgc.b < 0)
-        {
-            sample.bgColor = screenBuffer[y, x].bgColor;
-            // sample.bgColor = ConsoleColor.Red.ToRGB();
-        }
+        // var bgc = sample.bgColor;
+        // if (bgc.r < 0 && bgc.g < 0 && bgc.b < 0)
+        // {
+        // sample.bgColor = screenBuffer[y, x].bgColor;
+        // sample.bgColor = ConsoleColor.Red.ToRGB();
+        // }
 
-        var fcr = sample.foreColor;
-        if (fcr.r < 0 && fcr.g < 0 && fcr.b < 0)
-        {
-            sample.foreColor = screenBuffer[y, x].foreColor;
-        }
+        // var fcr = sample.foreColor;
+        // if (fcr.r < 0 && fcr.g < 0 && fcr.b < 0)
+        // {
+        // sample.foreColor = screenBuffer[y, x].foreColor;
+        // }
 
         screenBuffer[y, x] = sample;
     }
@@ -87,25 +72,18 @@ public static class ConsoleBuffer
         ConsoleColor foreColor = ConsoleColor.White,
         ConsoleColor backColor = ConsoleColor.Black)
     {
-        var cursorPos = ConsoleInterface.GetCursorPos();
-
         WriteAt(data, pos, foreColor.ToRGB(), backColor.ToRGB());
     }
 
     public static void WriteAt(string data, Vec2 pos,
-        (int r, int g, int b) foreground,
-        (int r, int g, int b) background)
+        ConColor foreground,
+        ConColor background)
     {
-        var cursorPos = ConsoleInterface.GetCursorPos();
-
-        int i = 0;
-        for (int x = pos.x; x < pos.x + data.Length; x++)
+        for (int x = 0; x < data.Length; x++)
         {
-            pos.y = Math.Clamp(pos.y, 0, yLength);
-
-            SafeSet(x, pos.y, new ConsoleCharacter()
+            SafeSet(x + pos.x, pos.y, new ConsoleCharacter()
             {
-                chr = data[x - pos.x],
+                chr = data[x],
                 bgColor = background,
                 foreColor = foreground
             });
@@ -120,58 +98,48 @@ public static class ConsoleBuffer
         //         screenBuffer[pos.y, x].dirty = true;
         //     }
         // });
-
-        ConsoleInterface.SetCursorPos(cursorPos);
     }
 
     public static void RenderScreenBuffer()
     {
-        // Console.Clear();
         ConsoleInterface.CheckBufferSize();
 
         var pos = ConsoleInterface.GetCursorPos();
 
+        var visible = Console.CursorVisible;
         Console.CursorVisible = false;
+
         ConsoleInterface.SetCursorPos(0, 0);
 
-        var rgbBuffer = ConsoleColorConverter.GetColorCharBuffer();
+        var rgbBuffer = ConsoleColorConverter.GetEmptyColorCharBuffer(xLength + 1);
 
-        char[] foreLineBuffer = new char[xLength * rgbBuffer.Length];
-        char[] bgLineBuffer = new char[xLength * rgbBuffer.Length];
+        bool colored = true;
 
-        for (int y = 0; y < yLength; y++)
+        for (int y = 0; y < yLength - 1; y++)
         {
             for (int x = 0; x < xLength; x++)
             {
                 var current = screenBuffer[y, x];
-                
-                ConsoleColorConverter.SetRGBBuffer(current.bgColor, current.chr, ref bgLineBuffer, 48,
-                    x * rgbBuffer.Length);
-                
-                ConsoleColorConverter.SetRGBBuffer(current.foreColor, current.chr, ref bgLineBuffer, 38,
-                    x * rgbBuffer.Length);
+
+                if (colored)
+                {
+                    ConsoleColorConverter.SetRGBBuffer(
+                        current.foreColor, current.bgColor,
+                        current.chr, ref rgbBuffer,
+                        x * ConsoleColorConverter.GetColorBufferLength());
+                }
+                else
+                {
+                    rgbBuffer[x] = current.chr;
+                }
             }
 
-            Console.Write(bgLineBuffer);
-            Console.Write(foreLineBuffer);
-            ConsoleInterface.SetCursorPos(0, y);
+            Console.Write(rgbBuffer);
 
-            // for (int x = 0; x < xLength; x++)
-            // {
-            //     var current = screenBuffer[y, x];
-            //
-            //     ConsoleColorConverter.SetRGBBuffer(current.bgColor, '\0', ref rgbBuffer, 48);
-            //     Console.Write(rgbBuffer);
-            //
-            //     ConsoleColorConverter.SetRGBBuffer(current.foreColor, current.chr, ref rgbBuffer, 38);
-            //     Console.Write(rgbBuffer);
-            // }
+            ConsoleInterface.SetCursorPos(0, y + 1);
         }
 
-        // sw.Stop();
-        // File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "/render.txt", sw.ElapsedMilliseconds + "ms,");
-
         ConsoleInterface.SetCursorPos(pos);
-        Console.CursorVisible = true;
+        Console.CursorVisible = visible;
     }
 }
