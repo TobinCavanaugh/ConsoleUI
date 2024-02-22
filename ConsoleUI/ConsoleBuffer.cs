@@ -3,6 +3,7 @@
 public static class ConsoleBuffer
 {
     public static ConsoleCharacter[,] screenBuffer;
+    public static string[] previousHashes;
 
     private static int yLength = 0;
     private static int xLength = 0;
@@ -22,8 +23,29 @@ public static class ConsoleBuffer
 
         xLength = dim.x;
         yLength = dim.y;
+
+        previousHashes = new string[yLength];
     }
 
+    public static void Clear()
+    {
+        for (int y = 0; y < yLength; y++)
+        {
+            for (int x = 0; x < xLength; x++)
+            {
+                screenBuffer[y, x].foreColor = ConsoleInterface.clearColor;
+                screenBuffer[y, x].bgColor = ConsoleInterface.clearColor;
+                screenBuffer[y, x].chr = ' ';
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fills the region between upper left and bottom right with the sample
+    /// </summary>
+    /// <param name="upperLeft"></param>
+    /// <param name="bottomRight"></param>
+    /// <param name="sample"></param>
     public static void FillRegion(Vec2 upperLeft, Vec2 bottomRight, ConsoleCharacter sample)
     {
         var dim = ConsoleInterface.GetConsoleDimensions();
@@ -37,6 +59,12 @@ public static class ConsoleBuffer
         }
     }
 
+    /// <summary>
+    /// Function to set a screenbuffer cell safely without a indexoutofbounds
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="sample"></param>
     public static void SafeSet(int x, int y, ConsoleCharacter sample)
     {
         var my = yLength;
@@ -51,19 +79,6 @@ public static class ConsoleBuffer
         {
             return;
         }
-
-        // var bgc = sample.bgColor;
-        // if (bgc.r < 0 && bgc.g < 0 && bgc.b < 0)
-        // {
-        // sample.bgColor = screenBuffer[y, x].bgColor;
-        // sample.bgColor = ConsoleColor.Red.ToRGB();
-        // }
-
-        // var fcr = sample.foreColor;
-        // if (fcr.r < 0 && fcr.g < 0 && fcr.b < 0)
-        // {
-        // sample.foreColor = screenBuffer[y, x].foreColor;
-        // }
 
         screenBuffer[y, x] = sample;
     }
@@ -100,21 +115,23 @@ public static class ConsoleBuffer
         // });
     }
 
-    public static void RenderScreenBuffer()
+    public static void RenderScreenBuffer(bool colored = true)
     {
+        //Resize buffer if we need to
         ConsoleInterface.CheckBufferSize();
 
         var pos = ConsoleInterface.GetCursorPos();
 
+        //Initialize cursor position to origin and hide it
         var visible = Console.CursorVisible;
         Console.CursorVisible = false;
-
         ConsoleInterface.SetCursorPos(0, 0);
 
+        //We do +1 or it crashes ┌( ಠ_ಠ)┘
         var rgbBuffer = ConsoleColorConverter.GetEmptyColorCharBuffer(xLength + 1);
 
-        bool colored = true;
-
+        //Due to weirdness, we need to do ylength - 1
+        //Iterate each cell of the screenbuffer
         for (int y = 0; y < yLength - 1; y++)
         {
             for (int x = 0; x < xLength; x++)
@@ -123,6 +140,7 @@ public static class ConsoleBuffer
 
                 if (colored)
                 {
+                    //If its colored we set the portion of the buffer to our console character information
                     ConsoleColorConverter.SetRGBBuffer(
                         current.foreColor, current.bgColor,
                         current.chr, ref rgbBuffer,
@@ -130,15 +148,25 @@ public static class ConsoleBuffer
                 }
                 else
                 {
+                    //Otherwise just set the basic char
                     rgbBuffer[x] = current.chr;
                 }
             }
 
-            Console.Write(rgbBuffer);
+            var currentHash = QuickHash.GetHash(new string(rgbBuffer));
+
+            if (currentHash != previousHashes[y])
+            {
+                //Write it
+                Console.Write(rgbBuffer);
+            }
 
             ConsoleInterface.SetCursorPos(0, y + 1);
+
+            previousHashes[y] = currentHash;
         }
 
+        //Reset cursor position and visibility
         ConsoleInterface.SetCursorPos(pos);
         Console.CursorVisible = visible;
     }

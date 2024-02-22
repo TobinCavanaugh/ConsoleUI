@@ -22,6 +22,7 @@ public struct ConsoleCharacter
 
     public ConsoleCharacter(char _cr, (int r, int g, int b) _fore, (int r, int g, int b) _bg)
     {
+        chr = _cr;
         foreColor = _fore;
         bgColor = _bg;
     }
@@ -29,5 +30,12 @@ public struct ConsoleCharacter
     public override string ToString()
     {
         return $"C:{chr} F:({foreColor.r},{foreColor.g},{foreColor.b}) B:({bgColor.r},{bgColor.g},{bgColor.b})";
+    }
+
+    public char[] ToBuffer()
+    {
+        var buffer = new char[43];
+        ConsoleColorConverter.SetRGBBuffer(foreColor, bgColor, chr, ref buffer, 0);
+        return buffer;
     }
 }

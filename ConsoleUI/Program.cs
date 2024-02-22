@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-using ConsoleUI;
+
+namespace ConsoleUI;
 
 public class Program
 {
@@ -12,9 +13,9 @@ public class Program
 
     static int[][] edges =
     {
-        new int[] {0, 1}, new int[] {1, 3}, new int[] {3, 2}, new int[] {2, 0}, new int[] {4, 5},
-        new int[] {5, 7}, new int[] {7, 6}, new int[] {6, 4}, new int[] {0, 4}, new int[] {1, 5},
-        new int[] {2, 6}, new int[] {3, 7}
+        new[] {0, 1}, new[] {1, 3}, new[] {3, 2}, new[] {2, 0}, new[] {4, 5},
+        new[] {5, 7}, new[] {7, 6}, new[] {6, 4}, new[] {0, 4}, new[] {1, 5},
+        new[] {2, 6}, new[] {3, 7}
     };
 
     public static void Main(string[] args)
@@ -45,16 +46,16 @@ public class Program
 
         ConsoleBuffer.RebuildBuffer();
 
-        UIElement element = new()
-        {
-            upperLeft = new Vec2(20, 20),
-            bottomRight = new Vec2(80, 80)
-        };
-        UIElement other = new()
-        {
-            upperLeft = (0, 0),
-            bottomRight = (10, 10),
-        };
+        // UIElement element = new()
+        // {
+        //     upperLeft = new Vec2(20, 20),
+        //     bottomRight = new Vec2(80, 80)
+        // };
+        // UIElement other = new()
+        // {
+        //     upperLeft = (0, 0),
+        //     bottomRight = (10, 10),
+        // };
 
 
         Stopwatch frameTime = new();
@@ -64,6 +65,9 @@ public class Program
         int s = 4;
         Scale(s, s, s);
         RotateCuboid(MathF.PI / 4, MathF.Atan(MathF.Sqrt(2)));
+
+        float deltaTime = 0;
+
 
         while (true)
         {
@@ -83,8 +87,6 @@ public class Program
 
             if (key == ConsoleKey.UpArrow)
             {
-                element.upperLeft.y--;
-                element.bottomRight.y--;
                 ConsoleInterface.MoveCursor(0, -1);
                 RotateCuboid(0, rot);
                 continue;
@@ -92,8 +94,6 @@ public class Program
 
             if (key == ConsoleKey.DownArrow)
             {
-                element.upperLeft.y++;
-                element.bottomRight.y++;
                 ConsoleInterface.MoveCursor(0, 1);
                 RotateCuboid(0, -rot);
                 continue;
@@ -101,8 +101,6 @@ public class Program
 
             if (key == ConsoleKey.LeftArrow)
             {
-                element.upperLeft.x--;
-                element.bottomRight.x--;
                 ConsoleInterface.MoveCursor(-1, 0);
                 RotateCuboid(rot, 0);
                 continue;
@@ -110,8 +108,6 @@ public class Program
 
             if (key == ConsoleKey.RightArrow)
             {
-                element.upperLeft.x++;
-                element.bottomRight.x++;
                 ConsoleInterface.MoveCursor(1, 0);
                 RotateCuboid(-rot, 0);
                 continue;
@@ -120,7 +116,6 @@ public class Program
             if (key == ConsoleKey.W)
             {
                 Scale(1.5f, 1.5f, 1.5f);
-                continue;
             }
 
             if (key == ConsoleKey.S)
@@ -137,40 +132,23 @@ public class Program
                 File.WriteAllText($"{Directory.GetCurrentDirectory()}\\file.txt", stw.ReadToEnd());
             }
 
-            ConsoleBuffer.FillRegion((0, 0), ConsoleInterface.GetConsoleDimensions(), new ConsoleCharacter()
+            if (mod == ConsoleModifiers.Control && key == ConsoleKey.W)
             {
-                chr = ' ',
-                bgColor = ConsoleInterface.clearColor.ToRGB(),
-                foreColor = ConsoleInterface.clearColor.ToRGB(),
-            });
+                Environment.Exit(0);
+            }
 
-            // element.Render();
-            // other.Render();
-            // element.Render();
+            RotateCuboid(deltaTime, 0);
 
-            // ConsoleBuffer.WriteAt(ms + "ms", (2, 2), ConsoleColor.Cyan);
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            // ConsoleBuffer.FillRegion((0, 0), (1, ConsoleInterface.GetConsoleDimensions().y + 1), new ConsoleCharacter()
-            // {
-            // chr = ' ',
-            // bgColor = (255, 0, 0),
-            // foreColor = (255, 0, 0)
-            // });
-
-            // ConsoleBuffer.WriteAt(":)", (0, 0), ConsoleColor.Cyan);
-            // ConsoleBuffer.WriteAt(ms + "ms", (0, 0), ConsoleColor.Cyan);
-
-            // ConsoleBuffer.SafeSet(0, 0,
-            // new ConsoleCharacter() {bgColor = (255, 0, 0), chr = '@', foreColor = (0, 0, 255)});
-            // ConsoleBuffer.SafeSet(0, 1,
-            // new ConsoleCharacter() {bgColor = (255, 0, 0), chr = '?', foreColor = (0, 0, 255)});
-            // ConsoleBuffer.SafeSet(0, ConsoleInterface.GetConsoleDimensions().y - 1,
-            // new ConsoleCharacter() {bgColor = (255, 0, 0), chr = '#', foreColor = (0, 0, 255)});
+            ConsoleBuffer.Clear();
 
             var dim = ConsoleInterface.GetConsoleDimensions();
 
             var hx = dim.x / 2;
             var hy = dim.y / 2;
+
+            //TODO, X needs to be scaled up cuz chars are 9:16
 
             foreach (var edge in edges)
             {
@@ -182,8 +160,6 @@ public class Program
                     ((int) MathF.Round(xy2[0]) + hx, (int) MathF.Round(xy2[1]) + hy),
                     new ConsoleCharacter('#', ConsoleColor.Blue, ConsoleColor.Blue)
                 );
-
-                // g.DrawLine(Pens.Black, (int)Math.Round(xy1[0]), (int)Math.Round(xy1[1]), (int)Math.Round(xy2[0]), (int)Math.Round(xy2[1]));
             }
 
             foreach (var node in nodes)
@@ -192,12 +168,16 @@ public class Program
                     (int) MathF.Round(node[0]) + hx,
                     (int) Math.Round(node[1]) + hy,
                     new ConsoleCharacter()
-                        {chr = '#', foreColor = ConsoleColor.Cyan.ToRGB(), bgColor = ConsoleColor.Cyan.ToRGB()});
+                        {chr = '#', foreColor = ConsoleColor.Cyan.ToRGB(), bgColor = ConsoleColor.Black});
             }
+
+            ConsoleBuffer.WriteAt($"Framerate: {(1000f / ms).ToString("F2")}", (0, 0), ConsoleColor.White);
 
             ConsoleBuffer.RenderScreenBuffer();
 
             ms = (int) frameTime.ElapsedMilliseconds;
+
+            deltaTime = ms / 1000f;
 
             frameTime.Restart();
         }
