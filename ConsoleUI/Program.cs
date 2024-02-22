@@ -10,7 +10,7 @@ public class Program
     };
 
 
-    int[][] edges =
+    static int[][] edges =
     {
         new int[] {0, 1}, new int[] {1, 3}, new int[] {3, 2}, new int[] {2, 0}, new int[] {4, 5},
         new int[] {5, 7}, new int[] {7, 6}, new int[] {6, 4}, new int[] {0, 4}, new int[] {1, 5},
@@ -79,14 +79,14 @@ public class Program
             var key = raw.Key;
             var mod = raw.Modifiers;
 
-            float rot = MathF.PI / 5f;
+            float rot = MathF.PI / 10f;
 
             if (key == ConsoleKey.UpArrow)
             {
                 element.upperLeft.y--;
                 element.bottomRight.y--;
                 ConsoleInterface.MoveCursor(0, -1);
-                RotateCuboid(0,rot);
+                RotateCuboid(0, rot);
                 continue;
             }
 
@@ -117,10 +117,15 @@ public class Program
                 continue;
             }
 
-            if (key == ConsoleKey.Enter)
+            if (key == ConsoleKey.W)
             {
-                Console.Write("\n");
+                Scale(1.5f, 1.5f, 1.5f);
                 continue;
+            }
+
+            if (key == ConsoleKey.S)
+            {
+                Scale(.75f, .75f, .75f);
             }
 
             if (mod == ConsoleModifiers.Control && key == ConsoleKey.S)
@@ -164,15 +169,31 @@ public class Program
 
             var dim = ConsoleInterface.GetConsoleDimensions();
 
+            var hx = dim.x / 2;
+            var hy = dim.y / 2;
+
+            foreach (var edge in edges)
+            {
+                float[] xy1 = nodes[edge[0]];
+                float[] xy2 = nodes[edge[1]];
+
+                ConsoleInterface.DrawLine(
+                    ((int) MathF.Round(xy1[0]) + hx, (int) MathF.Round(xy1[1]) + hy),
+                    ((int) MathF.Round(xy2[0]) + hx, (int) MathF.Round(xy2[1]) + hy),
+                    new ConsoleCharacter('#', ConsoleColor.Blue, ConsoleColor.Blue)
+                );
+
+                // g.DrawLine(Pens.Black, (int)Math.Round(xy1[0]), (int)Math.Round(xy1[1]), (int)Math.Round(xy2[0]), (int)Math.Round(xy2[1]));
+            }
+
             foreach (var node in nodes)
             {
                 ConsoleBuffer.SafeSet(
-                    (int) MathF.Round(node[0]) + dim.x / 2,
-                    (int) Math.Round(node[1]) - 4 + dim.y / 2,
+                    (int) MathF.Round(node[0]) + hx,
+                    (int) Math.Round(node[1]) + hy,
                     new ConsoleCharacter()
                         {chr = '#', foreColor = ConsoleColor.Cyan.ToRGB(), bgColor = ConsoleColor.Cyan.ToRGB()});
             }
-
 
             ConsoleBuffer.RenderScreenBuffer();
 

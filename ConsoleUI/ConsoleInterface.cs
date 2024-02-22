@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Threading.Tasks.Dataflow;
 
 namespace ConsoleUI;
 
@@ -110,6 +111,48 @@ public static class ConsoleInterface
             BufferDimensions = dim;
         }
     }
-    
-    // public static void DrawLine(Vec2 ul, Vec2 br, ())
+
+    public static void DrawLine(Vec2 a, Vec2 b, ConsoleCharacter chr)
+    {
+        var dx = MathF.Abs(b.x - a.x);
+        var sx = a.x < b.x ? 1 : -1;
+        var dy = -MathF.Abs(b.y - a.y);
+        var sy = a.y < b.y ? 1 : -1;
+        var error = dx + dy;
+
+
+        while (true)
+        {
+            ConsoleBuffer.SafeSet(a.x, a.y, chr);
+
+            if (a.x == b.x && a.y == b.y)
+            {
+                break;
+            }
+
+            var e2 = 2 * error;
+
+            if (e2 >= dy)
+            {
+                if (a.x == b.x)
+                {
+                    break;
+                }
+
+                error += dy;
+                a.x += sx;
+            }
+
+            if (e2 <= dx)
+            {
+                if (a.y == b.y)
+                {
+                    break;
+                }
+
+                error += dx;
+                a.y += sy;
+            }
+        }
+    }
 }

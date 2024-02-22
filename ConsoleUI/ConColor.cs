@@ -28,4 +28,9 @@ public struct ConColor
     {
         return new ConColor(color.r, color.g, color.b);
     }
+
+    public static implicit operator ConColor(ConsoleColor color)
+    {
+        return new ConColor(color);
+    }
 }
